@@ -1,0 +1,115 @@
+.TH MGREYLISTD 8
+.SH NAME
+mgreylistd \- Simple greylisting daemon
+.SH SYNOPSIS
+.B mgreylistd
+[
+.B \-d
+] [
+.B \-v
+]
+
+.SH DESCRIPTION
+.if t .ds lq ``
+.if t .ds rq ''
+.if n .ds lq \&"\"
+.if n .ds rq \&"\"
+.de q
+\\$3\*(lq\\$1\*(rq\\$2
+..
+.I Mgreylistd 
+works in conjunction with the exim email MTA to provide greylisting services to help reduce spam.
+.PP
+These options are available:
+.TP
+.BI "\-d " 
+Daemonizes mgreylistd to run in the background.
+.TP
+.BI "\-v, \--version " 
+Displays program version information and terminates (even with -d specified).
+.PP
+
+Greylist attempts to fight spam by temporarily rejecting email with an SMTP 451 response, telling the sender to try again later.  Most legitimate email servers will try again, but spammers won't.  Even if they do, the amount of spam they can send out is reduced because they need to resend the message.  When the sending server retries the email, greylisting will recognize the message and let it through, adding the item to a 'white list'.
+
+To start the mgreylistd daemon, you have several options:
+.br
+service mgreylistd start
+.br
+/etc/init.d/mgreylistd start
+.br
+mgreylistd -d
+.br
+
+To stop the mgreylistd daemon, you have several options:
+.br
+service mgreylistd stop
+.br
+/etc/init.d/mgreylistd stop
+.br
+killall mgreylistd
+.br
+
+The service will save its internal grey and white list data each time it normally shuts down, and periodically as set by its config file.  Upon startup, those same data files are reloaded.
+
+Once installed, the service is not set to startup automatically.  The exact method need to start automatic bootup depends on your OS version and configuration.  The chkconfig, if installed, is an easy approach:
+.br
+chkconfig --level 35 mgreylistd
+.br
+.SS "exim"
+Setting up exim to utilize mgreylistd requires changes to your exim.conf file.  The following is a bare minimum that should operate with the mgreylistd daemon, which should be placed in the acl_check_rcpt section:
+.br
+.br
+defer message = Please try again later.
+.br
+  condition = ${readsocket{/var/run/mgreylistd/socket}\\
+.br
+  {--grey $sender_host_address \\
+.br
+  $sender_address $local_part@$domain}{5s}}
+
+
+.SH "FILES"
+.SS "/etc/mgreylistd/config"
+Configuration settings.  Currently, this file consists of three
+sections:
+.IP "[timeout]" 4
+Contains timeout values to control how long a triplet is greylisted or whitelisted, and how long between retries a server must wait.
+.IP "[socket]" 4
+Specifies path and permissions of the UNIX domain socket on which
+mgreylistd will listen.
+.IP "[data]" 4
+This specifies how often mgreylistd will save its data file.
+
+The UNIX domain socket providing the main interface to "mgreylistd".
+The MTA can either connect to this socket directly, or use the
+supplied "mgreylistc" utility to do so.
+
+.SS "/var/lib/mgreylistd"
+The folder where mgreylistd keeps its white and grey data files.
+
+.SH "BUGS"
+Because messages are initially rejected, email delivery may be delayed by several minutes.
+
+Though unlikely, it is possible that a valid email server may simply give up on a delivery, rather than retry it.  Most SMTP-compliant servers will retry however.
+
+.SH "AUTHOR"
+This executable and manual page were written by Mario Giannini.  The greylistd system developed by Tor Slettnes, originally for Debian GNU/Linux, was used as a model.
+
+.SH "COPYRIGHT"
+Copyright \(co 2009 Mario Giannini.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+On a Debian GNU/Linux system, the full text of the GPL is available in
+/usr/share/common-licenses/GPL.  It is also available at:
+
+    http://www.gnu.org/licenses/gpl.html
+.\" @(#)mgreylistd.8	7.18

@@ -1,0 +1,46 @@
+########################################################################
+### FILE:		/etc/mgreylistd/config
+### PURPOSE:	Configuration settings for the "mgreylistd" daemon
+########################################################################
+
+[timeouts]
+# Initial delay before previously unknown triplets are allowed to pass
+# Default is 10 minutes = 600 seconds
+retryMin     = 600
+
+# Lifetime of triplets that have not been retried after initial delay
+# Default is 8 hours = 28800 seconds
+retryMax     = 28800
+
+# Lifetime of auto-whitelisted triplets that have allowed mail to pass
+# Default is 60 days = 5,184,000 seconds
+expire       = 5184000
+
+
+[socket]
+# Path to the UNIX domain socket on which greylistd will listen.
+# The parent directory must be writable by the user running 'greylistd'.
+# Default path is "/var/run/mgreylistd/socket".
+path         = /var/run/mgreylistd/socket
+
+# UNIX filemode of that socket.  See "chmod(1)" for the meaning of this.
+# Default mode is 0660.
+mode         = 0660
+
+
+[data]
+# Update interval -- save data to the filesystem if if has been more
+# than this many seconds (default 600) since the last save.
+update       = 600
+
+# Pid path -- Defines where the locked file for pid identification is.
+# also used by some service-starting systems for autmatic process start and stop.
+pidpath      = /var/run/mgreylistd/pid
+
+# logfile - Full path to mgreylistd's log file
+logfile      = /var/log/mgreylistd.log
+
+# diag -- when non-zero, detailed logging is performed to logfile.  If zero, then
+# minimal logging takes place.
+#diag = 0
+

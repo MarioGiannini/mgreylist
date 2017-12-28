@@ -1,0 +1,86 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          mgreylistd
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop the mgreylistd daemon.
+### END INIT INFO
+########################################################################
+### FILE:	/etc/init.d/mgreylist
+########################################################################
+
+client=/usr/bin/mgreylist
+daemon=/usr/sbin/mgreylistd
+rundir=/var/run/mgreylistd
+datadir=/var/lib/mgreylistd
+pidfile=$rundir/pid
+socket=$rundir/socket
+
+# See if the daemon is present
+test -x "$daemon" || exit 0
+
+# Make sure /var/run/mgreylistd exists (/var/run may be a tmpfs)
+test -d "$rundir" || {
+    mkdir -p "$rundir"
+}
+
+case "$1" in
+    start)
+	if [ -e "$pidfile" ]
+	then
+	    echo "$0:"
+	    echo "  Another instance of \`${daemon##*/}' seems to be running."
+	    echo "  If this is not the case, please remove \"$pidfile\"."
+	    exit 1
+	fi
+
+	echo -n "Starting ${daemon##*/} daemon: "
+		mgreylistd -d &&
+	    echo "started."
+	;;
+
+
+    stop)
+		if [ -e "$pidfile" ]; then
+			echo -n "Stopping ${daemon##*/} daemon: " &&
+			mgreylistd -k &&
+		    echo "stopped."
+		else
+			echo "${daemon##*/} is not running"
+		fi
+	;;
+
+
+    status)
+		if [ -e "$pidfile" ]; then
+			echo "${daemon##*/} is running"
+		else
+			echo "${daemon##*/} is not running"
+		fi
+	;;
+
+    restart)
+	while [ ps -e | grep -v grep | grep mgreylistd ]
+	do
+		pkill mgreylistd
+		sleep 1
+	done
+
+
+#	$0 stop
+#	sleep 1
+#	$0 start
+
+	;;
+
+
+    *)
+	echo "Usage: $0 {start|stop|restart|status}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
+
