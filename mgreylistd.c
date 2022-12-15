@@ -9,7 +9,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-
+#include <unistd.h>
+#include <sys/stat.h>
+ 
 #define GROWBY 256
 #define VERSION "0.1.0"
 /*
@@ -633,10 +635,9 @@ char* processCmd( char* Str, int Socket ) {
 
 	purgeNodes();
 
-	//if( IsDiag ) {
-		MyLog( "Command received:", 0 );
-		MyLog( Str, 0 );
-	//}
+	MyLog( "Command received:", 0 );
+	MyLog( Str, 0 );
+
 	// Cmd may be [cmd] [--list] host_addr sender_address localemail
 	if( isCmd( Str ) )
 		Str = getPiece( Cmd, Str, sizeof(Cmd)-1 );
@@ -679,10 +680,9 @@ char* processCmd( char* Str, int Socket ) {
 	else 
 		Ret = respFALSE;
 	
-	//if( IsDiag ) {
-		MyLog( "Response: ", 0 );
-		MyLog( Ret, 0 );
-	//}
+	MyLog( "Response: ", 0 );
+	MyLog( Ret, 0 );
+
 	return Ret;
 }
 
@@ -703,8 +703,6 @@ int processSocket( int s2 ) {
 		if (!done) {
 			str[n]='\0';
 			Trim( str );
-MyLog( "Command", 0 );
-MyLog( str, 0 );			
 			if( strcmp( str, "quit" ) == 0 ) {
 				Terminate = 1;
 				p = respBYE;
@@ -972,14 +970,12 @@ int main( int argc, char** argv )
 		// Time to save?
 		SaveData( 0 );
 		sClient = getClient( sListener );
-		//if( IsDiag ) 
-			MyLog( "Returned from getClient", 0 );
 		if( sClient > 0 )
 		{
-			MyLog( "ProcessSocckt:", 0 );
+			if( IsDiag ) 
+				MyLog( "ProcessSocket:", 0 );
 			processSocket( sClient );
 		}
-		else MyLog( "Nothing", 0 );
 
 	}
 	SaveData( 1 );
